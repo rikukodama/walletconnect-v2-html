@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@reown/walletkit": "^1.1.1",
+    "@wagmi/core": "^2.13.9",
+    "@walletconnect/core": "^2.17.1",
+    "@walletconnect/utils": "^2.17.1",
+    "@web3modal/ethereum": "^2.7.1",
+    "@web3modal/html": "^2.7.1",
+    "viem": "^2.21.29"
+  }
+}

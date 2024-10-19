@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WalletConnect v2 Example</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        button { margin: 10px 0; padding: 10px; font-size: 16px; }
+        label { font-size: 18px; }
+        #pairingCode { margin-top: 20px; padding: 10px; background: #f4f4f4; border: 1px solid #ccc; }
+        #modal { display: none; background: rgba(0, 0, 0, 0.8); position: fixed; top: 0; left: 0; right: 0; bottom: 0; justify-content: center; align-items: center; color: white; }
+        #modalContent { background: #333; padding: 20px; border-radius: 5px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<h2>WalletConnect v2 Integration</h2>
+
+<w3m-core-button></w3m-core-button>
+<!-- <button id="connectButton">Connect Wallet</button> -->
+<button id="disconnectButton" style="display:none;">Disconnect Wallet</button>
+
+<!-- Pairing Code Section -->
+<div id="pairingCodeContainer" style="display:none;">
+    <label>Pairing Code (Copy this to connect):</label>
+    <div id="pairingCode"></div>
+    <button id="copyPairingCodeButton">Copy Pairing Code</button>
+</div>
+
+<!-- Modal for QR Code -->
+<div id="modal">
+    <div id="modalContent">
+        <p>Scan this code with your WalletConnect-compatible app!</p>
+        <div id="qrcode"></div>
+        <button id="closeModalButton">Close</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/@walletconnect/core@latest/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/@reown/walletkit@latest/dist/umd/index.min.js"></script>
+<!-- <script src="https://unpkg.com/@walletconnect/client@2.0.0-beta.16/dist/umd/index.min.js"></script>
+<script src="https://unpkg.com/qrcode@1.4.4/build/qrcode.min.js"></script> -->
+
+<script>
+    const connectButton = document.getElementById('connectButton');
+    const disconnectButton = document.getElementById('disconnectButton');
+    const pairingCodeContainer = document.getElementById('pairingCodeContainer');
+    const pairingCodeElement = document.getElementById('pairingCode');
+    const copyPairingCodeButton = document.getElementById('copyPairingCodeButton');
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    const closeModalButton = document.getElementById('closeModalButton');
+    const qrcodeDiv = document.getElementById('qrcode');
+
+    
+    // let client;
+    
+    // Connect wallet with WalletConnect v2
+    async function connectWallet() {
+        // Now you can use WalletConnect and WalletKit
+    
+        const core = new WalletConnectCore.Core({
+          projectId: 'b559ba6501ca2767f5352cd4e9724ef2'
+        });
+    
+        const metadata = {
+          name: 'Wallet-Connect-Example',
+          description: 'AppKit Example',
+          url: 'https://reown.com/appkit', // origin must match your domain & subdomain
+          icons: ['https://assets.reown.com/reown-profile-pic.png']
+        };
+    
+        WalletKit.init({
+          core, // <- pass the shared 'core' instance
+          metadata
+        }).then(walletKit => {
+          // Use walletKit here
+          console.log('WalletKit initialized', walletKit);
+        }).catch(error => {
+          console.error('Error initializing WalletKit', error);
+        });
+
+        // client = await WalletConnectClient.init({
+        //     projectId: 'YOUR_PROJECT_ID', // Replace with your WalletConnect Project ID
+        //     relayUrl: 'wss://relay.walletconnect.com',
+        //     metadata: {
+        //         name: 'Example DApp',
+        //         description: 'A simple DApp for WalletConnect',
+        //         url: 'https://example.com',
+        //         icons: ['https://example.com/icon.png'],
+        //     }
+        // });
+
+        // Create a new session (pairing)
+        const { uri } = await client.connect({
+            requiredNamespaces: {
+                eip155: {
+                    methods: ['eth_sendTransaction', 'personal_sign'],
+                    chains: ['eip155:1'], // Ethereum Mainnet
+                    events: ['chainChanged', 'accountsChanged'],
+                }
+            }
+        });
+
+        // Display QR code or pairing URI
+        if (uri) {
+            showModal(uri);
+            pairingCodeElement.innerText = uri;
+            pairingCodeContainer.style.display = 'block';
+        }
+
+        // Wallet connected
+        client.on('session_update', (session) => {
+            console.log('Session updated: ', session);
+        });
+
+        client.on('session_delete', () => {
+            console.log('Session disconnected');
+            disconnectWallet();
+        });
+
+        connectButton.style.display = 'none';
+        disconnectButton.style.display = 'inline-block';
+    }
+
+    // // Disconnect wallet
+    // function disconnectWallet() {
+    //     if (client) {
+    //         client.disconnect();
+    //         client = null;
+    //     }
+    //     connectButton.style.display = 'inline-block';
+    //     disconnectButton.style.display = 'none';
+    //     pairingCodeContainer.style.display = 'none';
+    // }
+
+    // // Show the QR code modal
+    // function showModal(uri) {
+    //     modal.style.display = 'flex';
+    //     QRCode.toCanvas(qrcodeDiv, uri, function (error) {
+    //         if (error) console.error(error);
+    //     });
+    // }
+
+    // // Close modal
+    // function closeModal() {
+    //     modal.style.display = 'none';
+    //     qrcodeDiv.innerHTML = ''; // Clear QR code
+    // }
+
+    // // Copy pairing code to clipboard
+    // function copyPairingCode() {
+    //     const pairingCode = pairingCodeElement.innerText;
+    //     navigator.clipboard.writeText(pairingCode).then(() => {
+    //         alert('Pairing code copied to clipboard!');
+    //     }).catch(err => {
+    //         console.error('Failed to copy text: ', err);
+    //     });
+    // }
+
+    // // Event listeners
+    // connectButton.addEventListener('click', connectWallet);
+    // disconnectButton.addEventListener('click', disconnectWallet);
+    // closeModalButton.addEventListener('click', closeModal);
+    // copyPairingCodeButton.addEventListener('click', copyPairingCode);
+</script>
+
+</body>
+</html>
